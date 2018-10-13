@@ -11,11 +11,7 @@ using System.Collections.Generic;
 using System.Collections;
 
 namespace extensions
-{
-	/// <summary>
-	/// Description of MyClass.
-	/// </summary>
-		
+{		
 	public static class Extensions
 	{
 		
@@ -234,7 +230,7 @@ namespace extensions
 			cur=-1;
 		}
 		 public void Dispose()
-    	{
+    		{
 		 	arr = null;
 		}
 	}
