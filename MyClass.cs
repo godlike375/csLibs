@@ -37,6 +37,51 @@ namespace extensions
 	    }
 	}
 	
+	public class pair<O,T>
+	{
+		public O o;
+		public T t;
+		public pair(O oo, T tt)
+		{
+			this.o = oo;
+			this.t = tt;
+		}
+	}
+	
+	public class CircularBuffer<T>
+	{
+		public T[] buffer;
+	  	public int next;
+	  	int count;
+	  	public int Count{get{return count;}}
+	
+		public T this[int i]
+		{
+			
+			get 
+			{
+				int cnt = count > i ? i : count-1;
+				int ini = (next-count+cnt);
+				ini = ini<0? count-(ini*-1) : ini;
+				return buffer[ini];
+			}
+		}
+	  	
+		public CircularBuffer(int length)
+		{
+			buffer = new T[length];
+			next = 0;
+			count = 0;
+		}
+		
+		public void Add(T o)
+		{
+			buffer[next] = default(T);
+			buffer[next] = o;
+			next = (next+1) % buffer.Length;
+			count = count < buffer.Length ? count+1: buffer.Length;
+		}
+	}
 	
 	////////////////////////////////////////////////////////////
 		public struct Range<T>:IEnumerable<T>
