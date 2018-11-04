@@ -1,0 +1,5 @@
+C:\Users\godlike\Documents\SharpDevelop Projects\csLibs\bin\Debug\csLibs.dll
+C:\Users\godlike\Documents\SharpDevelop Projects\csLibs\bin\Debug\csLibs.pdb
+C:\Users\godlike\Documents\SharpDevelop Projects\csLibs\obj\Debug\csLibs.csprojResolveAssemblyReference.cache
+C:\Users\godlike\Documents\SharpDevelop Projects\csLibs\obj\Debug\csLibs.dll
+C:\Users\godlike\Documents\SharpDevelop Projects\csLibs\obj\Debug\csLibs.pdb
