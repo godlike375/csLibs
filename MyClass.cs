@@ -9,6 +9,12 @@ namespace extensions
 	public static class Extensions
 	{
 		
+		public static HashSet<T> ToHashSet<T>(this IEnumerable<T> source,
+        IEqualityComparer<T> comparer = null)
+	    {
+	        return new HashSet<T>(source, comparer);
+	    }
+		
 	    public static Range<T> Range<T>(this T[] source, int start, int len)
 	    {
 	    	return new Range<T>(source, start, len);
@@ -70,7 +76,9 @@ namespace extensions
     	public void Disconnect(int acs)
     	{
     		a[acs].Item1.w.RemoveAt(a[acs].Item2);
+    		a[acs].Item1.d.RemoveAt(a[acs].Item2);
     		a.RemoveAt(acs);
+    		
     	}
     	
     	public void Push(Func<float, float> ac)
@@ -144,7 +152,6 @@ namespace extensions
 		{
 			foreach(var n in ne)
 				n.Push(ac);
-			//Parallel.ForEach(ne, delegate(Neuron n){n.Push(ac);});
 		}
 	}
 	
@@ -162,7 +169,7 @@ namespace extensions
 	public class CircularBuffer<T>
 	{
 		public T[] buffer;
-	  	public int next;
+	  	int next;
 	  	int count;
 	  	public int Count{get{return count;}}
 	
@@ -195,7 +202,7 @@ namespace extensions
 	}
 	
 	////////////////////////////////////////////////////////////
-		public struct Range<T>:IEnumerable<T>
+	public struct Range<T>:IEnumerable<T>
 	{
 		T[] arr;
 		int s;
