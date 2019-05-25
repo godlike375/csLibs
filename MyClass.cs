@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using System.Collections;
 
-namespace extensions
+namespace csLibs
 {		
 	public static class Extensions
 	{
@@ -200,6 +200,218 @@ namespace extensions
 			count = count < buffer.Length ? count+1: buffer.Length;
 		}
 	}
+	
+	/////////////////////////////////////////////////////////
+	
+	
+	public class Approximate
+    {
+    	public double[] result;
+    	public int basis;
+		public override string ToString()
+		{
+			string s = "";
+			for (int i = 0; i < basis; i++)
+            {
+                if (Math.Round(result[i], 3) != 0)
+                    s += ((result[i] > 0) ? "+" : "") +
+                        Math.Round(result[i], 3).ToString() + ((i > 0) ? "*x^" + i.ToString() : "") + " ";
+            }
+			return s;
+		}
+    	public double Predict(double x)
+    	{
+    		double y = 0;
+            for (int i = 0; i < basis; i++)
+            {
+                y += result[i] * Math.Pow(x, i);
+            }
+            return y;
+    	}
+    	public Approximate(double[] x, double[] y, int ba)
+    	{
+    		basis = ba;
+    		double[,] xy = new double[x.Length, x.Length];
+    		for(int i=0; i<x.Length; i++)
+    			xy[0,i] = x[i];
+    		for(int i=0; i<x.Length; i++)
+    			xy[1,i] = y[i];
+    		var matrix = MakeSystem(xy, ba);
+    		result = Gauss(matrix, basis, basis + 1);
+    	}
+    	
+    	private double[,] MakeSystem(double[,] xyTable, int basis)
+        {
+            double[,] matrix = new double[basis, basis + 1];
+            for (int i = 0; i < basis; i++)
+            {
+                for (int j = 0; j < basis; j++)
+                {
+                    matrix[i, j] = 0;
+                }
+            }
+            for (int i = 0; i < basis; i++)
+            {
+                for (int j = 0; j < basis; j++)
+                {
+                    double sumA = 0, sumB = 0;
+                    for (int k = 0; k < xyTable.GetLength(0); k++)
+                    {
+                        sumA += Math.Pow(xyTable[0, k], i) * Math.Pow(xyTable[0, k], j);
+                        sumB += xyTable[1, k] * Math.Pow(xyTable[0, k], i);
+                    }
+                    matrix[i, j] = sumA;
+                    matrix[i, basis] = sumB;
+                }
+            }
+            return matrix;
+        }
+    	
+        private double[] Gauss(double[,] matrix, int rowCount, int colCount)
+        {
+            int i;
+            int[] mask = new int[colCount - 1];
+            for (i = 0; i < colCount - 1; i++) mask[i] = i;
+            if (GaussDirectPass(ref matrix, ref mask, colCount, rowCount))
+            {
+                double[] answer = GaussReversePass(ref matrix, mask, colCount, rowCount);
+                return answer;
+            }
+            else return null;
+        }
+
+        private bool GaussDirectPass(ref double[,] matrix, ref int[] mask,
+            int colCount, int rowCount)
+        {
+            int i, j, k, maxId, tmpInt;
+            double maxVal, tempDouble;
+            for (i = 0; i < rowCount; i++)
+            {
+                maxId = i;
+                maxVal = matrix[i, i];
+                for (j = i + 1; j < colCount - 1; j++)
+                    if (Math.Abs(maxVal) < Math.Abs(matrix[i, j]))
+                    {
+                        maxVal = matrix[i, j];
+                        maxId = j;
+                    }
+                if (maxVal == 0) return false;
+                if (i != maxId)
+                {
+                    for (j = 0; j < rowCount; j++)
+                    {
+                        tempDouble = matrix[j, i];
+                        matrix[j, i] = matrix[j, maxId];
+                        matrix[j, maxId] = tempDouble;
+                    }
+                    tmpInt = mask[i];
+                    mask[i] = mask[maxId];
+                    mask[maxId] = tmpInt;
+                }
+                for (j = 0; j < colCount; j++) matrix[i, j] /= maxVal;
+                for (j = i + 1; j < rowCount; j++)
+                {
+                    double tempMn = matrix[j, i];
+                    for (k = 0; k < colCount; k++)
+                        matrix[j, k] -= matrix[i, k] * tempMn;
+                }
+            }
+            return true;
+        }
+
+        private double[] GaussReversePass(ref double[,] matrix, int[] mask,
+            int colCount, int rowCount)
+        {
+            int i, j, k;
+            for (i = rowCount - 1; i >= 0; i--)
+                for (j = i - 1; j >= 0; j--)
+                {
+                    double tempMn = matrix[j, i];
+                    for (k = 0; k < colCount; k++)
+                        matrix[j, k] -= matrix[i, k] * tempMn;
+                }
+            double[] answer = new double[rowCount];
+            for (i = 0; i < rowCount; i++) answer[mask[i]] = matrix[i, colCount - 1];
+            return answer;
+        }    	
+    	
+    }
+    
+        public struct Data
+		{
+		    public List<double> x;
+		    public double y;
+		    public Data(List<double> xx, double yy)
+		    {
+		    	x = xx; y = yy;
+		    }
+		}
+    
+	public class ApproxMulti
+    {
+
+    	double delta(List<double> a, List<double> b, List<double> dx)
+		{
+		    var s = 0.0;
+		    var i = 0;
+		    for (; i < a.Count && i < b.Count && i < dx.Count; i++) if (dx[i] > 0.0) s += (a[i] - b[i]) * (a[i] - b[i]) / dx[i];
+		    for (; i < a.Count && i < dx.Count; i++) if (dx[i] > 0.0) s += a[i] * a[i] / dx[i];
+		    for (; i < b.Count && i < dx.Count; i++) if (dx[i] > 0.0) s += b[i] * b[i] / dx[i];
+		    return s;
+		}
+    	double scalar(List<double> a, List<double> b, List<double> dx)
+		{
+		    var s = 0.0;
+		    var i = 0;
+		    for (; i < a.Count && i < b.Count && i < dx.Count; i++) if (dx[i] > 0.0) s += (a[i] * b[i]) / dx[i];
+		    return s;
+		}
+    	
+    	void ListResize<T>(List<T> ar, int sz)
+    	{
+    		int count = ar.Count;
+    		if(sz != count)
+    			ar.RemoveRange(sz+1, count-sz);
+    	}
+    	
+    	public double predict(List<double> x,
+               List<Data> previous_results,
+               List<double> dx,
+               int p)
+		{
+    		var neighbors = new List<KeyValuePair<Data, double>>();
+		    foreach (var it in previous_results)
+		    {
+		        List<double> x2 = it.x;
+		        var d = delta(x, x2, dx);
+		        var pair = new KeyValuePair<Data, double>(it, d);
+		        neighbors.Add(pair);
+		    }
+		    neighbors.Sort( (i, j) => i.Value.CompareTo(j.Value));
+		    ListResize(neighbors, p<neighbors.Count? p : neighbors.Count);
+		    var y = 0.0;
+		    foreach(var iti in neighbors)
+		    {
+		        var s = iti.Key.y;
+		        List<double> xi = iti.Key.x;
+		        foreach(var itj in neighbors)
+		        {
+		        	if (iti.Equals(itj)) continue;
+		            List<double> xj = itj.Key.x;
+		            var xxj = new List<double>();
+		            var xixj = new List<double>();
+		            for (var i = 0; i < x.Count && i < xj.Count; i++) xxj.Add(x[i] - xj[i]);
+		            for (var i = 0; i < xi.Count && i < xj.Count; i++) xixj.Add(xi[i] - xj[i]);
+		            s *= scalar(xxj, xixj, dx) / scalar(xixj, xixj, dx);
+		        }
+		        y += s;
+		    }
+		    return y;
+		}
+
+    }
+	
+	
 	
 	////////////////////////////////////////////////////////////
 	public struct Range<T>:IEnumerable<T>
