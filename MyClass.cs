@@ -359,11 +359,10 @@ namespace csLibs
 		    for (; i < b.Count && i < dx.Count; i++) if (dx[i] > 0.0) s += b[i] * b[i] / dx[i];
 		    return s;
 		}
-    	double scalar(List<double> a, List<double> b, List<double> dx)
+    	double scalar(double[] a, double[] b, List<double> dx)
 		{
 		    var s = 0.0;
-		    var i = 0;
-		    for (; i < a.Count && i < b.Count && i < dx.Count; i++) if (dx[i] > 0.0) s += (a[i] * b[i]) / dx[i];
+		    for (var i = 0; i < a.Length; i++) if (dx[i] > 0.0) s += (a[i] * b[i]) / dx[i];
 		    return s;
 		}
     	
@@ -398,10 +397,10 @@ namespace csLibs
 		        {
 		        	if (iti.Equals(itj)) continue;
 		            List<double> xj = itj.Key.x;
-		            var xxj = new List<double>();
-		            var xixj = new List<double>();
-		            for (var i = 0; i < x.Count && i < xj.Count; i++) xxj.Add(x[i] - xj[i]);
-		            for (var i = 0; i < xi.Count && i < xj.Count; i++) xixj.Add(xi[i] - xj[i]);
+		            var xxj = new double[xj.Count < x.Count ? xj.Count : x.Count];
+		            var xixj = new double[xj.Count < xi.Count ? xj.Count : xi.Count];
+		            for (var i = 0; i < xxj.Length; i++) xxj[i]=(x[i] - xj[i]);
+		            for (var i = 0; i < xixj.Length; i++) xixj[i]=(xi[i] - xj[i]);
 		            s *= scalar(xxj, xixj, dx) / scalar(xixj, xixj, dx);
 		        }
 		        y += s;
@@ -531,10 +530,11 @@ namespace csLibs
 			return new StringRangeEnumerator(arr, s, l);
 		}
 		
-		public string getString()
+		public override string ToString()
 		{
 			return arr.Slice(s, l);
 		}
+ 
 		
 		public char this[int index]
 		{
